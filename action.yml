@@ -48,12 +48,8 @@ runs:
             docker image tag "$img" "$vendored_image"
             docker push -q "$vendored_image"
             [[ -n "$COSIGN_PRIVATE_KEY" ]] && {
-              img_digest="$(docker manifest inspect $img | jq -r '.[0].Descriptor.digest')"
-              echo Signing image "$vendored_image", digest "$img_digest"
-              for tag in "${vendored_image%:*}@${img_digest}" "$vendored_image"
-              do
-                cosign sign -yf --upload=true -r --key env://COSIGN_PRIVATE_KEY "$tag"
-              done
+              echo "Signing image $vendored_image"
+              cosign sign -yf --upload=true -r --key env://COSIGN_PRIVATE_KEY "$vendored_image"
             }
           }
         done
