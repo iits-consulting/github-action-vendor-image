@@ -52,7 +52,7 @@ runs:
               echo Signing image "$vendored_image", digest "$img_digest"
               for tag in "${vendored_image%:*}@${img_digest}" "$vendored_image"
               do
-                cosign sign -y -r --key env://COSIGN_PRIVATE_KEY "$tag"
+                cosign sign -yf --upload=true -r --key env://COSIGN_PRIVATE_KEY "$tag"
               done
             }
           }
