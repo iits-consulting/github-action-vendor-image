@@ -1,0 +1,41 @@
+name: 'vendor and sign container images'
+description: 'Vendor a list of container images to a custom image repository, optionally signing them'
+inputs:
+  images:
+    description: 'A list of container images in the format IMAGE:TAG, seperated by space'
+    required: true
+  destination_base_url:
+    description: 'The URL of the registry including the project/group name, e.g. ghcr.io/MY_ORG_NAME'
+    required: true
+  cosign_key:
+    description: 'Optional: key that should be used to sign the vendored image'
+    required: false
+    default: "NOKEY"
+  cosign_password:
+    description: 'Optional: password to unlock the cosign key'
+    required: false
+    default: "NOPASS"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        [[ "${{ inputs.cosign_key }}" = "NOKEY" ]] || {
+          COSIGN_PRIVATE_KEY="${{ inputs.cosign_key }}"
+        }
+        [[ "${{ inputs.cosign_pass }}" = "NOPASS" ]] || {
+          COSIGN_PASSWORD="${{ inputs.cosign_pass }}"
+        }
+        for img in ${{ inputs.images }}; do
+          img_short="${img##*/}"
+          vendored_image="${{ inputs.destination_base_url }}/${img_short}"
+          # WARNING: this command is still experimental
+          # https://docs.docker.com/engine/reference/commandline/manifest_inspect/
+          docker manifest inspect "$vendored_image" || {
+            echo "Vendoring image $vendored_image"
+            docker pull -q "$img"
+            docker image tag "$img" "$vendored_image"
+            docker push -q "$vendored_image"
+            [[ -n "$COSIGN_PRIVATE_KEY" ]] && cosign sign --key env://COSIGN_PRIVATE_KEY "$vendored_image"
+          }
+        done
