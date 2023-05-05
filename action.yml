@@ -15,9 +15,18 @@ inputs:
     description: 'Optional: password to unlock the cosign key'
     required: false
     default: "NOPASS"
+  jq_version:
+    type: string
+    required: false
+    description: "Version of jq to install"
+    default: "1.6"
 runs:
   using: "composite"
   steps:
+    - name: 'Setup jq'
+      uses: dcarbone/install-jq-action@v1.0.1
+      with:
+        version: '${{ inputs.jq_version }}'
     - shell: bash
       run: |
         export COSIGN_PRIVATE_KEY=
@@ -38,6 +47,7 @@ runs:
             docker pull -q "$img"
             docker image tag "$img" "$vendored_image"
             docker push -q "$vendored_image"
-            [[ -n "$COSIGN_PRIVATE_KEY" ]] && cosign sign -y --key env://COSIGN_PRIVATE_KEY "$vendored_image"
+            img_digest="$(docker manifest inspect \"$img\" | jq -r '.[0].Descriptor.digest')"
+            [[ -n "$COSIGN_PRIVATE_KEY" ]] && cosign sign -y --key env://COSIGN_PRIVATE_KEY "${vendored_image}@${img_digest}"
           }
         done
