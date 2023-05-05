@@ -49,7 +49,7 @@ runs:
             docker push -q "$vendored_image"
             [[ -n "$COSIGN_PRIVATE_KEY" ]] && {
               echo "Signing image $vendored_image"
-              cosign sign -yf --upload=true -r --key env://COSIGN_PRIVATE_KEY "$vendored_image"
+              cosign sign -y --upload=true -r --key env://COSIGN_PRIVATE_KEY "$vendored_image"
             }
           }
         done
