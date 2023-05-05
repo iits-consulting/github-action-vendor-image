@@ -20,6 +20,8 @@ runs:
   steps:
     - shell: bash
       run: |
+        export COSIGN_PRIVATE_KEY=
+        export COSIGN_PASSWORD=
         [[ "${{ inputs.cosign_key }}" = "NOKEY" ]] || {
           COSIGN_PRIVATE_KEY="${{ inputs.cosign_key }}"
         }
