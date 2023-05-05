@@ -38,6 +38,6 @@ runs:
             docker pull -q "$img"
             docker image tag "$img" "$vendored_image"
             docker push -q "$vendored_image"
-            [[ -n "$COSIGN_PRIVATE_KEY" ]] && cosign sign --key env://COSIGN_PRIVATE_KEY "$vendored_image"
+            [[ -n "$COSIGN_PRIVATE_KEY" ]] && cosign sign -y --key env://COSIGN_PRIVATE_KEY "$vendored_image"
           }
         done
